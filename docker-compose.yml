@@ -1,0 +1,54 @@
+version: "3.8"
+services:
+  # Postgres database containers
+  postgres1:
+    image: postgres
+    container_name: postgres1
+    restart: always
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres1
+      POSTGRES_PASSWORD: postgres1
+    volumes:
+      - ./init-db.sh:/docker-entrypoint-initdb.d/init-db.sh
+
+  postgres2:
+    image: postgres
+    container_name: postgres2
+    restart: always
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_USER: postgres2
+      POSTGRES_PASSWORD: postgres2
+    volumes:
+      - ./init-db.sh:/docker-entrypoint-initdb.d/init-db.sh
+
+  postgres3:
+    image: postgres
+    container_name: postgres3
+    restart: always
+    ports:
+      - "5434:5432"
+    environment:
+      POSTGRES_USER: postgres3
+      POSTGRES_PASSWORD: postgres3
+    volumes:
+      - ./init-db.sh:/docker-entrypoint-initdb.d/init-db.sh
+
+  # UI for postgres databases
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin4_container
+    restart: always
+    ports:
+      - "8888:80"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+
+volumes:
+  pgadmin-data:
