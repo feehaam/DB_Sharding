@@ -62,6 +62,10 @@ public class DatabaseConfiguration {
         targetDataSources.put(SOUTHERN, db2DataSource());
         targetDataSources.put(PACIFIC, db3DataSource());
         MultiRoutingDataSource multiRoutingDataSource = new MultiRoutingDataSource();
+        targetDataSources.put(Region.NORTHERN, db1DataSource());
+        targetDataSources.put(Region.SOUTHERN, db2DataSource());
+        targetDataSources.put(Region.PACIFIC, db3DataSource());
+        MultiRoutingDataSource multiRoutingDataSource = new MultiRoutingDataSource();
         multiRoutingDataSource.setDefaultTargetDataSource(db1DataSource());
         multiRoutingDataSource.setTargetDataSources(targetDataSources);
         return multiRoutingDataSource;
@@ -87,6 +91,12 @@ public class DatabaseConfiguration {
             case null, default -> mongoProperties();
         };
         return hibernateProperties;
+        LocalContainerEntityManagerFactoryBean entityManager = new LocalContainerEntityManagerFactoryBean();
+        entityManager.setDataSource(multiRoutingDataSource());
+        entityManager.setPackagesToScan(PACKAGE_SCAN);
+        entityManager.setJpaVendorAdapter(new HibernateJpaVendorAdapter());
+        entityManager.setJpaProperties(hibernateProperties());
+        return entityManager;
     }
 
     @Bean(name = "multiTransactionManager")
@@ -100,6 +110,9 @@ public class DatabaseConfiguration {
             return transactionManager;
         }
         return null;
+        JpaTransactionManager transactionManager = new JpaTransactionManager();
+        transactionManager.setEntityManagerFactory(multiEntityManager().getObject());
+        return transactionManager;
     }
 
     @Primary
