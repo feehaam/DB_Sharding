@@ -1,4 +1,4 @@
-package playground;
+package playground.db.config;
 
 import com.zaxxer.hikari.HikariDataSource;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
@@ -14,6 +14,8 @@ import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
+import playground.db.config.MultiRoutingDataSource;
+import playground.entity.Region;
 
 import javax.sql.DataSource;
 import java.util.HashMap;
@@ -54,9 +56,9 @@ public class DatabaseConfiguration {
     @Bean(name = "multiRoutingDataSource")
     public DataSource multiRoutingDataSource() {
         Map<Object, Object> targetDataSources = new HashMap<>();
-        targetDataSources.put(ClientNames.DB1, db1DataSource());
-        targetDataSources.put(ClientNames.DB2, db2DataSource());
-        targetDataSources.put(ClientNames.DB3, db3DataSource());
+        targetDataSources.put(Region.NORTHERN, db1DataSource());
+        targetDataSources.put(Region.SOUTHERN, db2DataSource());
+        targetDataSources.put(Region.PACIFIC, db3DataSource());
         MultiRoutingDataSource multiRoutingDataSource
                 = new MultiRoutingDataSource();
         multiRoutingDataSource.setDefaultTargetDataSource(db1DataSource());

@@ -1,4 +1,4 @@
-package playground;
+package playground.db.config;
 
 import org.springframework.jdbc.datasource.lookup.AbstractRoutingDataSource;
 

@@ -1,7 +1,10 @@
-package playground;
+package playground.weather.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import playground.db.config.WeatherRepository;
+import playground.db.config.DBContextHolder;
+import playground.entity.Region;
 
 @Service
 public class WeatherService {
@@ -12,13 +15,13 @@ public class WeatherService {
     public Object getClientNames(String client) {
         switch (client) {
             case "db1":
-                DBContextHolder.setCurrentDb(ClientNames.DB1);
+                DBContextHolder.setCurrentDb(Region.NORTHERN);
                 break;
             case "db2":
-                DBContextHolder.setCurrentDb(ClientNames.DB2);
+                DBContextHolder.setCurrentDb(Region.SOUTHERN);
                 break;
             case "db3":
-                DBContextHolder.setCurrentDb(ClientNames.DB3);
+                DBContextHolder.setCurrentDb(Region.PACIFIC);
                 break;
         }
         return temperatureRepository.findAll();
