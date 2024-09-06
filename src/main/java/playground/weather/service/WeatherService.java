@@ -2,9 +2,9 @@ package playground.weather.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import playground.db.config.WeatherRepository;
 import playground.db.config.DBContextHolder;
 import playground.entity.Region;
+import playground.repository.WeatherRepository;
 
 @Service
 public class WeatherService {

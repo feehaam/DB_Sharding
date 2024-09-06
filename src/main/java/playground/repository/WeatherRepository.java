@@ -1,4 +1,4 @@
-package playground.db.config;
+package playground.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;

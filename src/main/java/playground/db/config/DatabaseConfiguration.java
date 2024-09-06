@@ -25,6 +25,7 @@ import java.util.Properties;
 @Configuration
 @EnableTransactionManagement
 @EnableJpaRepositories(
+        basePackages = "playground.repository",
         entityManagerFactoryRef = "multiEntityManager",
         transactionManagerRef = "multiTransactionManager")
 @EntityScan("playground.entity")
