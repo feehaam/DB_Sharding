@@ -9,18 +9,18 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/client")
-public class ClientDataController {
+@RequestMapping("/weather")
+public class WeatherController {
 
-    private Logger LOGGER = LoggerFactory.getLogger(ClientDataController.class);
+    private final Logger LOGGER = LoggerFactory.getLogger(WeatherController.class);
 
     @Autowired
-    private ClientMasterService clientMasterService;
+    private WeatherService clientMasterService;
 
     @GetMapping("/{clientdbName}")
-    public String findFromDatabase(@PathVariable String clientdbName) {
+    public Object findFromDatabase(@PathVariable String clientdbName) {
         var response = clientMasterService.getClientNames(clientdbName);
-        LOGGER.info(response);
+        LOGGER.info(response.toString());
         return response;
     }
 }
