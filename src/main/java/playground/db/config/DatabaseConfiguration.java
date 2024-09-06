@@ -60,8 +60,7 @@ public class DatabaseConfiguration {
         targetDataSources.put(Region.NORTHERN, db1DataSource());
         targetDataSources.put(Region.SOUTHERN, db2DataSource());
         targetDataSources.put(Region.PACIFIC, db3DataSource());
-        MultiRoutingDataSource multiRoutingDataSource
-                = new MultiRoutingDataSource();
+        MultiRoutingDataSource multiRoutingDataSource = new MultiRoutingDataSource();
         multiRoutingDataSource.setDefaultTargetDataSource(db1DataSource());
         multiRoutingDataSource.setTargetDataSources(targetDataSources);
         return multiRoutingDataSource;
@@ -70,23 +69,18 @@ public class DatabaseConfiguration {
     //add multi playground.data.entity configuration code
     @Bean(name = "multiEntityManager")
     public LocalContainerEntityManagerFactoryBean multiEntityManager() {
-        LocalContainerEntityManagerFactoryBean em
-                = new LocalContainerEntityManagerFactoryBean();
-        em.setDataSource(multiRoutingDataSource());
-        em.setPackagesToScan(PACKAGE_SCAN);
-        HibernateJpaVendorAdapter vendorAdapter
-                = new HibernateJpaVendorAdapter();
-        em.setJpaVendorAdapter(vendorAdapter);
-        em.setJpaProperties(hibernateProperties());
-        return em;
+        LocalContainerEntityManagerFactoryBean entityManager = new LocalContainerEntityManagerFactoryBean();
+        entityManager.setDataSource(multiRoutingDataSource());
+        entityManager.setPackagesToScan(PACKAGE_SCAN);
+        entityManager.setJpaVendorAdapter(new HibernateJpaVendorAdapter());
+        entityManager.setJpaProperties(hibernateProperties());
+        return entityManager;
     }
 
     @Bean(name = "multiTransactionManager")
     public PlatformTransactionManager multiTransactionManager() {
-        JpaTransactionManager transactionManager
-                = new JpaTransactionManager();
-        transactionManager.setEntityManagerFactory(
-                multiEntityManager().getObject());
+        JpaTransactionManager transactionManager = new JpaTransactionManager();
+        transactionManager.setEntityManagerFactory(multiEntityManager().getObject());
         return transactionManager;
     }
 
