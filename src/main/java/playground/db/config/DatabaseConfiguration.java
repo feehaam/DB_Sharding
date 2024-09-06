@@ -14,13 +14,14 @@ import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
-import playground.db.config.MultiRoutingDataSource;
 import playground.entity.Region;
 
 import javax.sql.DataSource;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+
+import static playground.entity.Region.*;
 
 @Configuration
 @EnableTransactionManagement
@@ -30,24 +31,24 @@ import java.util.Properties;
         transactionManagerRef = "multiTransactionManager")
 @EntityScan("playground.entity")
 public class DatabaseConfiguration {
-    //add JPA entities path here
+    //JPA entities path
     private final String PACKAGE_SCAN = "playground.entity";
 
     //set db1 as the primary and default database connection
     @Primary
-    @Bean(name = "db1DataSource")
+    @Bean(name = "northernDataSource")
     @ConfigurationProperties("spring.datasource.data-source-1")
     public DataSource db1DataSource() {
         return DataSourceBuilder.create().type(HikariDataSource.class).build();
     }
 
     //connection objects for the remaining 2 databases
-    @Bean(name = "db2DataSource")
+    @Bean(name = "southernDataSource")
     @ConfigurationProperties("spring.datasource.data-source-2")
     public DataSource db2DataSource() {
         return DataSourceBuilder.create().type(HikariDataSource.class).build();
     }
-    @Bean(name = "db3DataSource")
+    @Bean(name = "pacificDataSource")
     @ConfigurationProperties("spring.datasource.data-source-3")
     public DataSource db3DataSource() {
         return DataSourceBuilder.create().type(HikariDataSource.class).build();
@@ -57,11 +58,10 @@ public class DatabaseConfiguration {
     @Bean(name = "multiRoutingDataSource")
     public DataSource multiRoutingDataSource() {
         Map<Object, Object> targetDataSources = new HashMap<>();
-        targetDataSources.put(Region.NORTHERN, db1DataSource());
-        targetDataSources.put(Region.SOUTHERN, db2DataSource());
-        targetDataSources.put(Region.PACIFIC, db3DataSource());
-        MultiRoutingDataSource multiRoutingDataSource
-                = new MultiRoutingDataSource();
+        targetDataSources.put(NORTHERN, db1DataSource());
+        targetDataSources.put(SOUTHERN, db2DataSource());
+        targetDataSources.put(PACIFIC, db3DataSource());
+        MultiRoutingDataSource multiRoutingDataSource = new MultiRoutingDataSource();
         multiRoutingDataSource.setDefaultTargetDataSource(db1DataSource());
         multiRoutingDataSource.setTargetDataSources(targetDataSources);
         return multiRoutingDataSource;
@@ -70,24 +70,36 @@ public class DatabaseConfiguration {
     //add multi playground.data.entity configuration code
     @Bean(name = "multiEntityManager")
     public LocalContainerEntityManagerFactoryBean multiEntityManager() {
-        LocalContainerEntityManagerFactoryBean em
-                = new LocalContainerEntityManagerFactoryBean();
-        em.setDataSource(multiRoutingDataSource());
-        em.setPackagesToScan(PACKAGE_SCAN);
-        HibernateJpaVendorAdapter vendorAdapter
-                = new HibernateJpaVendorAdapter();
-        em.setJpaVendorAdapter(vendorAdapter);
-        em.setJpaProperties(hibernateProperties());
-        return em;
+        LocalContainerEntityManagerFactoryBean entityManager = new LocalContainerEntityManagerFactoryBean();
+        entityManager.setDataSource(multiRoutingDataSource());
+        entityManager.setPackagesToScan(PACKAGE_SCAN);
+        entityManager.setJpaVendorAdapter(new HibernateJpaVendorAdapter());
+        entityManager.setJpaProperties(getJpaProperties());
+        return entityManager;
+    }
+
+    private Properties getJpaProperties() {
+        Properties hibernateProperties;
+        Object currentDataSource = ((MultiRoutingDataSource) multiRoutingDataSource()).determineCurrentLookupKey();
+        hibernateProperties = switch (currentDataSource) {
+            case NORTHERN -> postgresProperties();
+            case SOUTHERN -> mysqlProperties();
+            case null, default -> mongoProperties();
+        };
+        return hibernateProperties;
     }
 
     @Bean(name = "multiTransactionManager")
     public PlatformTransactionManager multiTransactionManager() {
-        JpaTransactionManager transactionManager
-                = new JpaTransactionManager();
-        transactionManager.setEntityManagerFactory(
-                multiEntityManager().getObject());
-        return transactionManager;
+        Object currentDataSource = ((MultiRoutingDataSource) multiRoutingDataSource()).determineCurrentLookupKey();
+        if (Region.PACIFIC.equals(currentDataSource)) {
+            // Configure MongoTransactionManager or equivalent here for MongoDB.
+        } else {
+            JpaTransactionManager transactionManager = new JpaTransactionManager();
+            transactionManager.setEntityManagerFactory(multiEntityManager().getObject());
+            return transactionManager;
+        }
+        return null;
     }
 
     @Primary
@@ -96,18 +108,34 @@ public class DatabaseConfiguration {
         LocalSessionFactoryBean sessionFactoryBean = new LocalSessionFactoryBean();
         sessionFactoryBean.setDataSource(multiRoutingDataSource());
         sessionFactoryBean.setPackagesToScan(PACKAGE_SCAN);
-        sessionFactoryBean.setHibernateProperties(hibernateProperties());
+        sessionFactoryBean.setHibernateProperties(postgresProperties());
         return sessionFactoryBean;
     }
 
     //add hibernate properties
-    private Properties hibernateProperties() {
+    private Properties postgresProperties() {
+        return generateHibernateProperty(true, true, false, true, "org.hibernate.dialect.PostgreSQLDialect");
+    }
+
+    private Properties mysqlProperties() {
+        return generateHibernateProperty(true, true, false, true, "org.hibernate.dialect.MySQLDialect");
+    }
+
+    private Properties mongoProperties() {
         Properties properties = new Properties();
-        properties.put("hibernate.show_sql", true);
-        properties.put("hibernate.format_sql", true);
-        properties.put("hibernate.dialect", "org.hibernate.dialect.PostgreSQLDialect");
-        properties.put("hibernate.id.new_generator_mappings", false);
-        properties.put("hibernate.jdbc.lob.non_contextual_creation", true);
+        // MongoDB doesn't use Hibernate, instead Spring Data MongoDB is used.
+        // So, this would typically be empty or hold relevant MongoDB properties
+        return properties;
+    }
+
+    private Properties generateHibernateProperty(boolean showSql, boolean formatSql, boolean generatorMapping,
+                                                 boolean nonContextualCreation, String dialect){
+        Properties properties = new Properties();
+        properties.put("hibernate.show_sql", showSql);
+        properties.put("hibernate.format_sql", formatSql);
+        properties.put("hibernate.dialect", dialect);
+        properties.put("hibernate.id.new_generator_mappings", generatorMapping);
+        properties.put("hibernate.jdbc.lob.non_contextual_creation", nonContextualCreation);
         return properties;
     }
 }
