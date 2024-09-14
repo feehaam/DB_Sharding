@@ -34,23 +34,16 @@ public class DatabaseConfiguration {
     //JPA entities path
     private final String PACKAGE_SCAN = "playground.entity";
 
-    //set db1 as the primary and default database connection
+    // Prepare the data sources bean
     @Primary
     @Bean(name = "northernDataSource")
     @ConfigurationProperties("spring.datasource.data-source-1")
     public DataSource db1DataSource() {
         return DataSourceBuilder.create().type(HikariDataSource.class).build();
     }
-
-    //connection objects for the remaining 2 databases
     @Bean(name = "southernDataSource")
     @ConfigurationProperties("spring.datasource.data-source-2")
     public DataSource db2DataSource() {
-        return DataSourceBuilder.create().type(HikariDataSource.class).build();
-    }
-    @Bean(name = "pacificDataSource")
-    @ConfigurationProperties("spring.datasource.data-source-3")
-    public DataSource db3DataSource() {
         return DataSourceBuilder.create().type(HikariDataSource.class).build();
     }
 
@@ -59,8 +52,8 @@ public class DatabaseConfiguration {
     public DataSource multiRoutingDataSource() {
         Map<Object, Object> targetDataSources = new HashMap<>();
         targetDataSources.put(NORTHERN, db1DataSource());
-        targetDataSources.put(SOUTHERN, db2DataSource());
-        targetDataSources.put(PACIFIC, db3DataSource());
+        targetDataSources.put(SOUTHERN, db1DataSource());
+        targetDataSources.put(PACIFIC, db2DataSource());
 
         MultiRoutingDataSource multiRoutingDataSource = new MultiRoutingDataSource();
         multiRoutingDataSource.setDefaultTargetDataSource(db1DataSource());
@@ -83,9 +76,8 @@ public class DatabaseConfiguration {
         Properties hibernateProperties;
         Object currentDataSource = ((MultiRoutingDataSource) multiRoutingDataSource()).determineCurrentLookupKey();
         hibernateProperties = switch (currentDataSource) {
-            case NORTHERN -> postgresProperties();
-            case SOUTHERN -> mysqlProperties();
-            case null, default -> mongoProperties();
+            case NORTHERN, SOUTHERN -> postgresProperties();
+            case null, default -> mysqlProperties();
         };
         return hibernateProperties;
     }
@@ -111,7 +103,7 @@ public class DatabaseConfiguration {
         LocalSessionFactoryBean sessionFactoryBean = new LocalSessionFactoryBean();
         sessionFactoryBean.setDataSource(multiRoutingDataSource());
         sessionFactoryBean.setPackagesToScan(PACKAGE_SCAN);
-        sessionFactoryBean.setHibernateProperties(postgresProperties());
+        sessionFactoryBean.setHibernateProperties(getJpaProperties());
         return sessionFactoryBean;
     }
 
