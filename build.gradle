@@ -33,6 +33,8 @@ dependencies {
 
 	// Database dependency
 	runtimeOnly 'org.postgresql:postgresql'
+	implementation group: 'mysql', name: 'mysql-connector-java', version: '8.0.28'
+
 
 	// Docker
 	developmentOnly 'org.springframework.boot:spring-boot-docker-compose'

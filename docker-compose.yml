@@ -1,6 +1,6 @@
 version: "3.8"
 services:
-  # Postgres database containers
+  # Postgres database container
   postgres1:
     image: postgres
     container_name: postgres1
@@ -11,33 +11,24 @@ services:
       POSTGRES_USER: postgres1
       POSTGRES_PASSWORD: postgres1
     volumes:
-      - ./init-db.sh:/docker-entrypoint-initdb.d/init-db.sh
+      - postgres-data:/var/lib/postgresql/data
 
-  postgres2:
-    image: postgres
-    container_name: postgres2
+  # MySQL database container
+  mysql1:
+    image: mysql:latest
+    container_name: mysql1
     restart: always
     ports:
-      - "5433:5432"
+      - "3306:3306"
     environment:
-      POSTGRES_USER: postgres2
-      POSTGRES_PASSWORD: postgres2
+      MYSQL_ROOT_PASSWORD: mysql1
+      MYSQL_DATABASE: mysql1
+      MYSQL_USER: mysql1
+      MYSQL_PASSWORD: mysql1
     volumes:
-      - ./init-db.sh:/docker-entrypoint-initdb.d/init-db.sh
+      - mysql-data:/var/lib/mysql
 
-  postgres3:
-    image: postgres
-    container_name: postgres3
-    restart: always
-    ports:
-      - "5434:5432"
-    environment:
-      POSTGRES_USER: postgres3
-      POSTGRES_PASSWORD: postgres3
-    volumes:
-      - ./init-db.sh:/docker-entrypoint-initdb.d/init-db.sh
-
-  # UI for postgres databases
+  # UI for PostgreSQL databases
   pgadmin:
     image: dpage/pgadmin4
     container_name: pgadmin4_container
@@ -50,5 +41,20 @@ services:
     volumes:
       - pgadmin-data:/var/lib/pgadmin
 
+  # UI for MySQL databases
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: phpmyadmin_container
+    restart: always
+    ports:
+      - "6600:80"
+    environment:
+      PMA_HOST: mysql1
+      PMA_PORT: 3306
+      PMA_USER: mysql1
+      PMA_PASSWORD: mysql1
+
 volumes:
   pgadmin-data:
+  mysql-data:
+  postgres-data:
