@@ -1,10 +1,10 @@
 - ### The application stores & retrieves weather information across 3 different shards (SOUTHERN, NORTHERN, PACIFIC)
-- ### Each shard is implemented using a different Database system (Northern -> Postgres, Southern -> MySQL, Pacific -> Mongo)
+- ### Shards are implemented using different Database systems such as Northern -> Postgres, Southern -> Postgres, Pacific & Other (if added more) -> MySQL
 
 ### Follow the steps to run the application
 - Run the docker-compose
-- Create a database named `postgres1` in postgres 
-- Then create a table using the following query
+- Create a database named `postgres1` in postgres server (pgAdmin container also added to manage DB)
+- Then create a table `weather` using the following query
 ````shell
 CREATE TABLE IF NOT EXISTS weather (
         id SERIAL PRIMARY KEY,
@@ -15,8 +15,8 @@ CREATE TABLE IF NOT EXISTS weather (
         region VARCHAR(255) NOT NULL
     );
 ````
-- Similarly, create a database `mysql1` in mySQL container
-- Then create a table using the following query
+- Similarly, create a database `mysql1` in mySQL server (phpMyAdmin container also added to manage DB)
+- Then create a similar table `weather` using the following query
 ````shell
 CREATE TABLE IF NOT EXISTS weather (
         id INT AUTO_INCREMENT PRIMARY KEY,
@@ -29,5 +29,5 @@ CREATE TABLE IF NOT EXISTS weather (
 ````
 - Now run the application and it's ready to go.
 ### Quick API note
-- http://localhost:8080/weather/generate/10 -> generates 10 random weather rows and stores those across different shards.
-- http://localhost:8080/weather/get-by-region/northern or http://localhost:8080/weather/get-by-region/southern or http://localhost:8080/weather/get-by-region/pacific -> returns all temperature info from that region/shard
+- http://localhost:8080/weather/generate/{numberOfDummyEntry} -> generates random weather rows and stores those across different shards.
+- http://localhost:8080/weather/get-by-region/{region} [regions: ``NORTHERN``/``SOUTHERN``/``PACIFIC``] -> returns all weather info from that region/shard
