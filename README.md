@@ -1,10 +1,10 @@
 - ### The application stores & retrieves weather information across 3 different shards (SOUTHERN, NORTHERN, PACIFIC)
-- ### Shards are implemented using different Database systems such as Northern -> Postgres, Southern -> Postgres, Pacific & Other (if added more) -> MySQL
+- ### Shards are implemented using different Database systems such as Northern -> Postgres DB 1, Southern -> Postgres BD 2, Pacific & Other (if added more) -> MySQL
 
 ### Follow the steps to run the application
 - Run the docker-compose
-- Create a database named `postgres1` in postgres server (pgAdmin container also added to manage DB)
-- Then create a table `weather` using the following query
+- Create a database named `postgres1` in postgres server 1 and `postgres2` in postgres server 2 (pgAdmin container also added to manage DB)
+- Then create a table `weather` using the following query in both databases.
 ````shell
 CREATE TABLE IF NOT EXISTS weather (
         id SERIAL PRIMARY KEY,

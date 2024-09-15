@@ -46,14 +46,19 @@ public class DatabaseConfiguration {
     public DataSource db2DataSource() {
         return DataSourceBuilder.create().type(HikariDataSource.class).build();
     }
+    @Bean(name = "pacificDataSource")
+    @ConfigurationProperties("spring.datasource.data-source-3")
+    public DataSource db3DataSource() {
+        return DataSourceBuilder.create().type(HikariDataSource.class).build();
+    }
 
     //The multi datasource configuration
     @Bean(name = "multiRoutingDataSource")
     public DataSource multiRoutingDataSource() {
         Map<Object, Object> targetDataSources = new HashMap<>();
         targetDataSources.put(NORTHERN, db1DataSource());
-        targetDataSources.put(SOUTHERN, db1DataSource());
-        targetDataSources.put(PACIFIC, db2DataSource());
+        targetDataSources.put(SOUTHERN, db2DataSource());
+        targetDataSources.put(PACIFIC, db3DataSource());
 
         MultiRoutingDataSource multiRoutingDataSource = new MultiRoutingDataSource();
         multiRoutingDataSource.setDefaultTargetDataSource(db1DataSource());
@@ -85,13 +90,6 @@ public class DatabaseConfiguration {
     @Bean(name = "multiTransactionManager")
     public PlatformTransactionManager multiTransactionManager() {
         Object currentDataSource = ((MultiRoutingDataSource) multiRoutingDataSource()).determineCurrentLookupKey();
-        if (Region.PACIFIC.equals(currentDataSource)) {
-            // Configure MongoTransactionManager or equivalent here for MongoDB.
-        } else {
-            JpaTransactionManager transactionManager = new JpaTransactionManager();
-            transactionManager.setEntityManagerFactory(multiEntityManager().getObject());
-            return transactionManager;
-        }
         JpaTransactionManager transactionManager = new JpaTransactionManager();
         transactionManager.setEntityManagerFactory(multiEntityManager().getObject());
         return transactionManager;
@@ -114,13 +112,6 @@ public class DatabaseConfiguration {
 
     private Properties mysqlProperties() {
         return generateHibernateProperty(true, true, false, true, "org.hibernate.dialect.MySQLDialect");
-    }
-
-    private Properties mongoProperties() {
-        Properties properties = new Properties();
-        // MongoDB doesn't use Hibernate, instead Spring Data MongoDB is used.
-        // So, this would typically be empty or hold relevant MongoDB properties
-        return properties;
     }
 
     private Properties generateHibernateProperty(boolean showSql, boolean formatSql, boolean generatorMapping,
